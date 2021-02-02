@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:smb="http://www.mulesoft.org/schema/mule/smb" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/smb http://www.mulesoft.org/schema/mule/smb/current/mule-smb.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="589ca578-f339-44a5-8798-c83f2fcb21cb" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="main-flow" doc:id="5c985af2-abe9-43ce-86c9-343ac144bebc" >
+		<http:listener doc:name="POST 8081/mainFlow" doc:id="67838e8e-2ce9-4113-be8f-afef38df43f2" config-ref="HTTP_Listener_config" path="/mainFlow"/>
+		<set-variable value="#[payload]" doc:name="Set FV inputPayload" doc:id="ab864406-78db-4b36-ba12-1ad00a268d6f" variableName="inputPayload"/>
+		<ee:transform doc:name="Conditions" doc:id="d02cb1f9-8c12-4b21-8e45-a154f8fe430f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if ( vars.inputPayload.name == 'Max' ) (Mule::lookup("sub-flow1", payload))
+else if ( vars.inputPayload.name == 'Mule' ) (Mule::lookup("sub-flow2", payload))
+else (Mule::lookup('sub-flow3', payload))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sub-flow1" doc:id="e4da6b1d-f74a-4a7b-81ed-bd31beb5d353" >
+		<set-payload value='#[%dw 2.0
+output application/json
+---
+{
+	"Status": "Hi Max, How are you doing?"
+}]' doc:name='"Hi Max, How are you doing?"' doc:id="64f7c5d9-ffb2-42cb-ac50-1cae39ce0b84" />
+	</flow>
+	<flow name="sub-flow2" doc:id="b0547868-27b8-4f11-aaf7-a9f7046a21fe" >
+		<set-payload value='#[%dw 2.0
+output application/json
+---
+{
+	"Status": "Hi Mule, How are you doing?"
+}]' doc:name='"Hi Mule, How are you doing?"' doc:id="8c69e559-a38e-4ec1-8cd2-c1a3e13ef1e7" />
+	</flow>
+	<flow name="sub-flow3" doc:id="768a323b-c1ff-42d1-9172-ccad3582505e" >
+		<set-payload value='#[%dw 2.0
+output application/json
+---
+{
+	"Status": "Name does not exist. Please provide valid name."
+}]' doc:name='"Name does not exist. Please provide valid name."' doc:id="2bdde7a1-6102-4103-9f05-0e4340f77d4f" />
+	</flow>
+</mule>
